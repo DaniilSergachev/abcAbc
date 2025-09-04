@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ambulance Animation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #cceeff;
+        }
+
+        .scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: url('/images/d2bg.png') no-repeat right bottom;
+            background-size: 100% 100%;
+        }
+
+        .ambulance {
+            position: absolute;
+            bottom: 120px;
+            left: 0;
+            width: 220px;
+            transition: left 4s linear;
+            cursor: pointer;
+        }
+
+        /* Подсветка */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0px rgba(255, 0, 0, 0.6); }
+            50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); }
+            100% { box-shadow: 0 0 0px rgba(255, 0, 0, 0.6); }
+        }
+
+        .ambulance.highlight {
+            animation: pulse 1s infinite;
+        }
+
+        .doctor {
+            position: absolute;
+            bottom: 50px;
+            right: 160px;
+            width: 100px;
+            display: none;
+            transition: bottom 1.5s ease, right 2s ease;
+        }
+        .left-arrow {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 150px;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            cursor: pointer;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="scene">
+    <img id="ambulance" class="ambulance" src="/images/car.png" alt="Ambulance">
+    <img id="doctor" class="doctor" src="/images/doctor.png" alt="Doctor">
+    <img src="/images/arrow-left.png" class="left-arrow" id="left-arrow">
+    <img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+</div>
+
+<audio id="siren" src="/sounds/sirena.mp3"></audio>
+<audio id="sayDoctor" src="/sounds/doctor.mp3"></audio>
+<audio id="soundClick" src="/sounds/Di.mp3"></audio>
+
+<script>
+    const ambulance = document.getElementById('ambulance');
+    const doctor = document.getElementById('doctor');
+    const siren = document.getElementById('siren');
+    const sayDoctor = document.getElementById('sayDoctor');
+    const leftArrow = document.getElementById('left-arrow');
+    const rightArrow = document.getElementById('right-arrow');
+
+    leftArrow.onclick = () => {
+        document.getElementById("soundClick").play();
+        setTimeout(() => {
+            window.location.href = '/d1';
+        }, 700);
+    }
+
+    rightArrow.onclick = () => {
+        document.getElementById("soundClick").play();
+        setTimeout(() => {
+            window.location.href = '/e1';
+        }, 700);
+    }
+
+    // 🚨 Добавляем подсветку при загрузке
+    window.onload = () => {
+        ambulance.classList.add('highlight');
+    };
+
+    ambulance.addEventListener('click', () => {
+        // 🔕 Отключаем повторный клик
+        ambulance.classList.remove('highlight');
+        ambulance.style.pointerEvents = 'none';
+
+        ambulance.style.left = 'calc(100% - 1000px)';
+        siren.play();
+
+        setTimeout(() => {
+            siren.pause();
+            siren.currentTime = 0;
+            showDoctor();
+        }, 4000);
+    });
+
+    function showDoctor() {
+        doctor.style.display = 'block';
+        sayDoctor.play();
+
+        doctor.style.right = '1000px';
+        doctor.style.bottom = '120px';
+
+        setTimeout(() => {
+            doctor.style.right = '570px'; // немного вправо
+
+            setTimeout(() => {
+                doctor.style.bottom = '200px'; // немного вверх
+
+                setTimeout(() => {
+                    doctor.style.display = 'none';
+                }, 1000);
+
+            }, 1000);
+
+        }, 300);
+    }
+</script>
+
+</body>
+</html>

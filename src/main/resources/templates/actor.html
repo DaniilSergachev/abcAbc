@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Сцена</title>
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            overflow: hidden;
+        }
+
+        .stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #222;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .curtain {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: red;
+            transition: transform 1s ease;
+            z-index: 2;
+        }
+
+        .left {
+            left: 0;
+            border-right: 4px solid #900;
+        }
+
+        .right {
+            right: 0;
+            border-left: 4px solid #900;
+        }
+
+        .stage.open .left {
+            transform: translateX(-100%);
+        }
+
+        .stage.open .right {
+            transform: translateX(100%);
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 150px;
+            left: 40%;
+            width: 120px;
+            transform: translateX(-50%) rotate(-10deg);
+            animation: bounce 1s infinite;
+            z-index: 3;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) rotate(-10deg) translateY(0); }
+            50% { transform: translateX(-50%) rotate(-10deg) translateY(-10px); }
+        }
+
+        .scene-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('/images/stage-background.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1.5;
+        }
+
+        .left-arrow, .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 1;
+            z-index: 999;
+            transition: opacity 0.3s;
+        }
+
+        .left-arrow { left: 10px; }
+        .right-arrow { right: 10px; }
+
+        .actor-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            width: 400px;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .actor-container.walk-dance {
+            animation: moveAround 13s linear forwards;
+        }
+
+        .flip-wrapper {
+            width: 100%;
+        }
+
+        .flip-wrapper.flip-right {
+            transform: scaleX(-1);
+        }
+
+        .flip-wrapper.flip-left {
+            transform: scaleX(1);
+        }
+
+        .actor {
+            width: 100%;
+            animation: none;
+            cursor: pointer;
+        }
+
+        .actor.danceMotion {
+            animation: danceMotion 1s infinite ease-in-out;
+        }
+
+        @keyframes moveAround {
+            0%   { transform: translateX(-50%) translateY(0); }
+            20%  { transform: translateX(-100%) translateY(0); }
+            50%  { transform: translateX(0%) translateY(0); }
+            80%  { transform: translateX(-90%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes danceMotion {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(5deg); }
+            50% { transform: scale(0.95) rotate(-5deg); }
+            75% { transform: scale(1.05) rotate(3deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Актёр с обёрткой для зеркаливания -->
+<div class="actor-container hidden" id="actorContainer">
+    <div class="flip-wrapper" id="flipWrapper">
+        <img src="/images/actor.png" alt="Актёр" class="actor" id="actor">
+    </div>
+</div>
+
+<!-- Сцена -->
+<div class="stage" id="stage" onclick="startScene()">
+    <img src="/images/hand.png" alt="Нажми сюда" class="hand" id="hand">
+    <img src="/images/arrow-left.png" alt="Назад" class="left-arrow hidden" id="leftArrow">
+    <img src="/images/arrow-right.png" alt="Вперёд" class="right-arrow hidden" id="rightArrow">
+
+    <div class="curtain left" id="leftCurtain"></div>
+    <div class="curtain right" id="rightCurtain"></div>
+    <div class="scene-bg hidden" id="sceneBg"></div>
+</div>
+
+<!-- Аудио -->
+<audio id="voice" src="/sounds/actor.mp3"></audio>
+<audio id="music" src="/sounds/music.mp3" loop></audio>
+<audio id="curtainSound" src="/sounds/curtain_open.mp3"></audio>
+<audio id="audioEY" src="/sounds/letter-a.mp3"></audio>
+
+<!-- Скрипт -->
+<script>
+    function startScene() {
+        const stage = document.getElementById('stage');
+        const actor = document.getElementById('actor');
+        const flipWrapper = document.getElementById('flipWrapper');
+        const actorContainer = document.getElementById('actorContainer');
+        const voice = document.getElementById('voice');
+        const music = document.getElementById('music');
+        const hand = document.getElementById('hand');
+        const sceneBg = document.getElementById('sceneBg');
+        const curtainSound = document.getElementById('curtainSound');
+        const leftArrow = document.getElementById('leftArrow');
+        const rightArrow = document.getElementById('rightArrow');
+
+        leftArrow.onclick = () => {
+            document.getElementById("audioEY").play();
+            setTimeout(() => {
+                window.location.href = '/river';
+            }, 700);
+        }
+
+        rightArrow.onclick = () => {
+            document.getElementById("audioEY").play();
+            setTimeout(() => {
+                window.location.href = '/ant';
+            }, 700);
+        }
+
+        voice.volume = 1.0;
+        music.loop = false;
+
+        hand.style.display = 'none';
+        curtainSound.play();
+        stage.classList.add('open');
+        sceneBg.classList.remove('hidden');
+
+        setTimeout(() => {
+            actorContainer.classList.remove('hidden');
+
+            setTimeout(() => {
+                voice.play();
+            }, 1000);
+
+            voice.onended = () => {
+                music.play();
+
+                actorContainer.classList.add('walk-dance');
+                actor.classList.add('danceMotion');
+                flipWrapper.classList.add('flip-left');
+
+                setTimeout(() => {
+                    flipWrapper.classList.remove('flip-left');
+                    flipWrapper.classList.add('flip-right');
+                }, 4000);
+
+                setTimeout(() => {
+                    flipWrapper.classList.remove('flip-right');
+                    flipWrapper.classList.add('flip-left');
+                }, 9000);
+
+                setTimeout(() => {
+                    actorContainer.classList.remove('walk-dance');
+                    actor.classList.remove('danceMotion');
+                    flipWrapper.classList.remove('flip-left', 'flip-right');
+                }, 13000);
+
+                // 👇 Назначаем клик на актёра после первого показа
+                actor.style.cursor = 'pointer';
+                actor.onclick = playActorAnimation;
+            };
+
+            music.onended = () => {
+                leftArrow.classList.remove('hidden');
+                rightArrow.classList.remove('hidden');
+            };
+        }, curtainSound.duration * 1000);
+    }
+
+    function playActorAnimation() {
+        const actor = document.getElementById('actor');
+        const flipWrapper = document.getElementById('flipWrapper');
+        const actorContainer = document.getElementById('actorContainer');
+        const voice = document.getElementById('voice');
+
+        if (!voice.paused) return;
+
+        voice.currentTime = 0;
+        voice.play();
+
+        actorContainer.classList.add('walk-dance');
+        actor.classList.add('danceMotion');
+        flipWrapper.classList.add('flip-left');
+
+        setTimeout(() => {
+            flipWrapper.classList.remove('flip-left');
+            flipWrapper.classList.add('flip-right');
+        }, 4000);
+
+        setTimeout(() => {
+            flipWrapper.classList.remove('flip-right');
+            flipWrapper.classList.add('flip-left');
+        }, 9000);
+
+        setTimeout(() => {
+            actorContainer.classList.remove('walk-dance');
+            actor.classList.remove('danceMotion');
+            flipWrapper.classList.remove('flip-left', 'flip-right');
+        }, 13000);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Letter Animation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('/images/sea.png') no-repeat fixed;
+            background-size: 100% 100%;
+            font-family: sans-serif;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .letter, .dolphin, .utka, .hand {
+            position: absolute;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .letter {
+            font-size: 60px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .dolphin {
+            transition: top 1s ease, left 1s ease;
+        }
+
+        .hand {
+            width: 60px;
+            top: 66%;
+            animation: bounce 1s infinite;
+        }
+
+        .dolphin img, .utka img {
+            width: 120px;
+            height: auto;
+        }
+        .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 1;
+            z-index: 3;
+            transition: opacity 0.3s;
+        }
+
+        .utka {
+            transform: translateX(-50%);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="letter1" class="letter" style="top: 70%; left: 40%;">D</div>
+    <div id="letter2" class="letter" style="top: 70%; left: 50%;">d</div>
+
+    <img id="hand1" class="hand hidden" src="/images/hand.png" alt="hand1" style="left: 35%; top: 72%">
+    <img id="hand2" class="hand hidden" src="/images/hand.png" alt="hand2" style="left: 5%; top: 32%">
+    <img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+
+
+    <div id="dolphin" class="dolphin hidden" style="top: 180%; left: 45%;">
+        <img src="/images/dolphin.png" alt="dolphin">
+    </div>
+
+    <div id="utka" class="utka hidden" style="top: 30%; left: 13%;">
+        <img src="/images/Utka.png" alt="utka">
+    </div>
+
+    <div id="smallUtka" class="utka hidden" style="top: 30%; left: -13%;">
+        <img src="/images/smallUtki.png" alt="small utka">
+    </div>
+
+</div>
+
+<audio id="soundClick" src="/sounds/Di.mp3"></audio>
+<audio id="soundUtka" src="/sounds/duck.mp3"></audio>
+<audio id="dols" src="/sounds/dolphin.mp3"></audio>
+<audio id="plesk" src="/sounds/plesk.mp3"></audio>
+<audio id="cr" src="/sounds/utkacryak.mp3"></audio>
+
+<script>
+    const letter1 = document.getElementById('letter1');
+    const letter2 = document.getElementById('letter2');
+    const hand1 = document.getElementById('hand1');
+    const hand2 = document.getElementById('hand2');
+    const dolphin = document.getElementById('dolphin');
+    const utka = document.getElementById('utka');
+    const soundClick = document.getElementById('soundClick');
+    const soundUtka = document.getElementById('soundUtka');
+    const smallUtka = document.getElementById('smallUtka');
+    const dolS = document.getElementById('dols');
+    const rightArrow = document.getElementById('right-arrow');
+    const plesk = document.getElementById('plesk');
+    const cry = document.getElementById('cr');
+
+    rightArrow.onclick = () => {
+        soundClick.play();
+        setTimeout(() => {
+            window.location.href = '/d2';
+        }, 700);
+    };
+
+    let animateLetters = true;
+    let handTimer;
+
+    // Рука 1 появляется через 3 секунды бездействия
+    function startHandHintTimer() {
+        clearTimeout(handTimer);
+        hand1.classList.add('hidden');
+        handTimer = setTimeout(() => {
+            hand1.classList.remove('hidden');
+        }, 3000);
+    }
+
+    // Плавное зеркальное движение букв
+    let angle = 0;
+    function moveLetters() {
+        if (!animateLetters) return;
+        angle += 0.05;
+
+        const amplitude = 20;
+        const offset1 = Math.sin(angle) * amplitude;
+        const offset2 = Math.sin(angle + Math.PI) * amplitude;
+
+        letter1.style.transform = `translateX(${offset1}px)`;
+        letter2.style.transform = `translateX(${offset2}px)`;
+
+        requestAnimationFrame(moveLetters);
+    }
+
+    moveLetters();
+    startHandHintTimer();
+
+    letter1.addEventListener('click', onClickLetters);
+    letter2.addEventListener('click', onClickLetters);
+    letter1.addEventListener('mouseenter', startHandHintTimer);
+    letter2.addEventListener('mouseenter', startHandHintTimer);
+
+    function onClickLetters() {
+        animateLetters = false;
+        soundClick.play();
+        letter1.classList.add('hidden');
+        letter2.classList.add('hidden');
+        hand1.classList.add('hidden');
+        clearTimeout(handTimer);
+
+        setTimeout(() => {
+            dolphin.classList.remove('hidden');
+            animateDolphin();
+        }, 500);
+    }
+    let dolphinStep = 0;
+    let dolphinSoundPlayed = false;
+
+    function animateDolphin() {
+        if (dolphinStep === 0) {
+            plesk.play(); // второй звук дельфина
+        }
+        if (!dolphinSoundPlayed) {
+            setTimeout(() => {
+                dolS.play(); // начало анимации
+            }, 3500);
+            dolphinSoundPlayed = true;
+        }
+
+        if (dolphinStep >= 9) {
+            dolphinStep = 0;
+            dolphinSoundPlayed = false;
+
+            dolS.play(); // конец анимации
+
+            setTimeout(() => {
+                dolphin.classList.add('hidden');
+                showUtka();
+            }, 400);
+            return;
+        }
+
+        const deltaY = dolphinStep % 2 === 0 ? 150 : -150;
+        const currentTop = parseFloat(dolphin.style.top);
+        const currentLeft = parseFloat(dolphin.style.left);
+
+        dolphin.style.top = `${currentTop + deltaY}px`;
+        dolphin.style.left = `${currentLeft + 80}px`;
+
+        dolphinStep++;
+        setTimeout(animateDolphin, 800);
+    }
+
+
+    function showUtka() {
+        utka.classList.remove('hidden');
+        smallUtka.classList.remove('hidden');
+        hand2.classList.remove('hidden');
+        setTimeout(() => {
+            cry.play();
+        }, 800);
+
+        utka.addEventListener('click', () => {
+            soundUtka.play();
+            hand2.classList.add('hidden');
+            moveUtkaRight();
+        });
+    }
+
+    function moveUtkaRight() {
+        let utkaPos = parseFloat(utka.style.left);
+        let smallPos = parseFloat(smallUtka.style.left);
+        plesk.volume = 0.3; // Громкость от 0.0 до 1.0 (например, 0.3 — 30%)
+        cry.play();
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 1500);
+
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 3500);
+
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 5500);
+
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 7500);
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 9500);
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 10500);
+
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 11500);
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 13500);
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 14500);
+        setTimeout(() => {
+            plesk.play();
+            cry.play();
+        }, 15500);
+
+        function move() {
+            if (utkaPos > window.innerWidth && smallPos > window.innerWidth) {
+                utka.classList.add('hidden');
+                smallUtka.classList.add('hidden');
+                return;
+            }
+
+            utkaPos += 1.5;
+            setTimeout(() => {
+            smallPos += 1.5;
+            }, 1500);
+
+            utka.style.left = `${utkaPos}px`;
+            smallUtka.style.left = `${smallPos}px`;
+
+            requestAnimationFrame(move);
+        }
+        move();
+    }
+
+</script>
+</body>
+</html>

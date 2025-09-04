@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rocks & Ants</title>
+    <style>
+        body {
+            margin: 0;
+            background: url('/images/ground.png') center/cover no-repeat;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .rock {
+            position: absolute;
+            width: 220px;
+            transition: transform 1s ease-out, opacity 0.5s ease;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .rock.clicked {
+            transform: translateY(-200vh) rotate(720deg);
+            opacity: 0;
+        }
+
+        .hand-hint {
+            position: absolute;
+            width: 60px;
+            animation: pulse 1.2s infinite;
+            z-index: 3;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
+
+        .ant {
+            position: absolute;
+            width: 180px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 1;
+        }
+
+        .ant.visible {
+            opacity: 1;
+        }
+
+        .arrow-left, .btn-finish {
+            position: absolute;
+            bottom: 20px;
+            width: 150px;
+            cursor: pointer;
+            z-index: 4;
+        }
+
+        .arrow-left {
+            left: 20px;
+        }
+
+        .btn-finish {
+            right: 20px;
+            padding: 15px 25px;
+            background: gold;
+            color: #222;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-finish:hover {
+            background: orange;
+        }
+    </style>
+</head>
+<body>
+
+<div class="scene">
+    <!-- Камни и муравьи -->
+    <img src="/images/rock.png" class="rock" id="rock1" style="top: 50%; left: 20%;">
+    <img src="/images/ant.png" class="ant" id="ant1" style="top: 55%; left: 22%;">
+
+    <img src="/images/rock.png" class="rock" id="rock2" style="top: 60%; left: 40%;">
+    <img src="/images/ant.png" class="ant" id="ant2" style="top: 65%; left: 42%;">
+
+    <img src="/images/rock.png" class="rock" id="rock3" style="top: 45%; left: 60%;">
+    <img src="/images/ant.png" class="ant" id="ant3" style="top: 50%; left: 62%;">
+
+    <img src="/images/rock.png" class="rock" id="rock4" style="top: 55%; left: 80%;">
+    <img src="/images/ant.png" class="ant" id="ant4" style="top: 60%; left: 82%;">
+
+    <!-- Подсказки -->
+    <img src="/images/hand.png" class="hand-hint" id="hand1" style="top: 58%; left: 18%;">
+    <img src="/images/hand.png" class="hand-hint" id="hand2" style="top: 68%; left: 38%;">
+    <img src="/images/hand.png" class="hand-hint" id="hand3" style="top: 53%; left: 57%;">
+    <img src="/images/hand.png" class="hand-hint" id="hand4" style="top: 65%; left: 78%;">
+
+    <!-- Кнопки -->
+    <img src="/images/arrow-left.png" class="arrow-left" onclick="goBack()">
+    <button class="btn-finish" onclick="finish()">FINISH</button>
+</div>
+
+<audio id="antSound" src="/sounds/ant.mp3"></audio>
+
+<script>
+    function handleRockClick(rockId, antId, handId) {
+        const rock = document.getElementById(rockId);
+        const ant = document.getElementById(antId);
+        const hand = document.getElementById(handId);
+        const audio = document.getElementById('antSound');
+
+        rock.classList.add('clicked');
+        ant.classList.add('visible');
+        if (hand) hand.style.display = 'none';
+
+        audio.currentTime = 0;
+        audio.play();
+    }
+
+    document.getElementById('rock1').onclick = () => handleRockClick('rock1', 'ant1', 'hand1');
+    document.getElementById('rock2').onclick = () => handleRockClick('rock2', 'ant2', 'hand2');
+    document.getElementById('rock3').onclick = () => handleRockClick('rock3', 'ant3', 'hand3');
+    document.getElementById('rock4').onclick = () => handleRockClick('rock4', 'ant4', 'hand4');
+
+    function goBack() {
+        window.location.href = '/actor';
+    }
+
+    function finish() {
+        window.location.href = '/cartoon';
+    }
+</script>
+
+</body>
+</html>

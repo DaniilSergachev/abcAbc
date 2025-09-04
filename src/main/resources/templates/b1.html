@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Balloon Letters Animation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('/images/skybackground.png') no-repeat fixed;
+            background-size: cover;
+            font-family: sans-serif;
+        }
+
+        .balloon, .balloon1 {
+            position: absolute;
+            cursor: pointer;
+            width: 220px;
+            top: -200px;
+            transition: transform 2s ease-in-out, opacity 0.5s ease;
+            z-index: 2;
+        }
+
+        .balloon { left: -150px; }
+        .balloon1 { right: -150px; }
+
+        .letter-fall {
+            animation: fall-out 1.5s ease-in forwards;
+        }
+
+        @keyframes fall-out {
+            0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(520vh) rotate(90deg); opacity: 0; }
+        }
+
+        #hand {
+            position: absolute;
+            max-width: 80px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            left: calc(40% - 125px);
+            top: 42%;
+        }
+
+        .balloon .letter, .balloon1 .letter {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .balloon .letter img, .balloon1 .letter img {
+            position: absolute;
+            width: 35px;
+            z-index: 10;
+        }
+
+        .balloon .letter img { top: -35px; transform: translateX(-60%); }
+        .balloon1 .letter img { top: -55px; transform: translateX(-60%); }
+
+        @keyframes hand-move {
+            0%   { transform: translateX(0); }
+            50%  { transform: translateX(-20px); }
+            100% { transform: translateX(0); }
+        }
+
+        .hand-animation {
+            animation: hand-move 1.5s infinite ease-in-out;
+        }
+
+        .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 1;
+            z-index: 3;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<img id="hand" src="/images/hand.png" alt="hand">
+
+<!-- Первый шарик с буквой B -->
+<div class="balloon" id="balloon1">
+    <img src="/images/balloon.png" style="width: 100%;" alt="Balloon B">
+    <div class="letter" id="letter1">
+        <img src="/images/letterB.png" alt="B">
+    </div>
+</div>
+
+<!-- Второй шарик с буквой b -->
+<div class="balloon1" id="balloon2">
+    <img src="/images/balloon.png" style="width: 100%;" alt="Balloon b">
+    <div class="letter" id="letter2">
+        <img src="/images/bLetter.png" alt="b">
+    </div>
+</div>
+
+<!-- Аудиоэлементы -->
+<audio id="soundBalloon1" src="/sounds/bara1.mp3"></audio>
+<audio id="soundBalloon2" src="/sounds/bara1.mp3"></audio>
+<audio id="soundPop" src="/sounds/pop.mp3"></audio>
+<audio id="audio4" src="/sounds/bi.wav"></audio>
+<audio id="bal" src="/sounds/balloon.mp3"></audio>
+<img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+
+<script>
+    const balloon1 = document.getElementById('balloon1');
+    const balloon2 = document.getElementById('balloon2');
+    const soundBalloon1 = document.getElementById('soundBalloon1');
+    const soundBalloon2 = document.getElementById('soundBalloon2');
+    const letter1 = document.getElementById('letter1');
+    const letter2 = document.getElementById('letter2');
+    const soundPop = document.getElementById('soundPop');
+    const audio4 = document.getElementById('audio4');
+    const bal = document.getElementById('bal');
+    const rightArrow = document.getElementById('right-arrow');
+    const hand = document.getElementById('hand');
+
+    let handTimer = setTimeout(showHand, 6000);
+
+    function showHand() {
+        hand.style.opacity = '1';
+        hand.classList.add('hand-animation');
+    }
+
+    function resetHandTimer() {
+        clearTimeout(handTimer);
+        hand.classList.remove('hand-animation');
+        handTimer = setTimeout(showHand, 3000);
+    }
+
+    function hideHand() {
+        hand.style.opacity = '0';
+        hand.classList.remove('hand-animation');
+        clearTimeout(handTimer);
+    }
+
+    rightArrow.onclick = () => {
+        audio4.play();
+        setTimeout(() => {
+            window.location.href = '/b2';
+        }, 700);
+    }
+
+    function animateBalloon(balloonEl) {
+        const centerX = window.innerWidth / 2 - balloonEl.offsetWidth / 2;
+        const centerY = window.innerHeight / 2 - balloonEl.offsetHeight / 2;
+        const rect = balloonEl.getBoundingClientRect();
+
+        const deltaX = centerX - rect.left + (balloonEl.id === 'balloon1' ? -100 : 100);
+        const deltaY = centerY - rect.top;
+
+        setTimeout(() => {
+            (balloonEl.id === 'balloon1' ? soundBalloon1 : soundBalloon2).play();
+        }, 500);
+
+        balloonEl.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+        setTimeout(() => {
+            audio4.play();
+        }, 2000);
+    }
+
+    window.onload = () => {
+        animateBalloon(balloon1);
+        setTimeout(() => {
+            animateBalloon(balloon2);
+        }, 2000);
+    };
+
+    balloon1.addEventListener('click', () => {
+        bal.play();
+        hideHand(); // ← Скрываем hand при клике
+        setTimeout(() => {
+            soundPop.play();
+            balloon1.style.opacity = '0';
+            letter1.classList.add('letter-fall');
+        }, 1000);
+        setTimeout(() => {
+            letter1.style.display = 'none';
+        }, 2500);
+    });
+
+    balloon2.addEventListener('click', () => {
+        bal.play();
+        hideHand(); // ← Скрываем hand при клике
+        setTimeout(() => {
+            soundPop.play();
+            balloon2.style.opacity = '0';
+            letter2.classList.add('letter-fall');
+        }, 1000);
+        setTimeout(() => {
+            letter2.style.display = 'none';
+        }, 2500);
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Основные стили */
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(to right, #0a1d2f, #4e2c7a);
+            font-family: Arial, sans-serif;
+            --image-spacing: 10px;
+        }
+        /* Контейнеры для изображений */
+        .image-container {
+            position: absolute;
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+        /* Начальные позиции */
+        #left-image {
+            top: -200px;
+            left: 20px;
+        }
+        #right-image {
+            top: -200px;
+            right: 20px;
+        }
+        /* Анимация при наведении */
+        .show-second .second-image:hover {
+            transform: scale(1.15);
+            z-index: 3;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.2));
+            cursor: pointer;
+        }
+        .show-second .second-image {
+            transform: scale(1);
+            transition: opacity 0.6s ease-in-out, transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+        }
+        /* Финальные позиции */
+        .final-position-left {
+            top: 50% !important;
+            left: calc(50% - 240px - var(--image-spacing)) !important;
+            transform: translateY(-50%);
+        }
+        /* Изменённое положение: правый контейнер сдвинут вниз на 20px */
+        .final-position-right {
+            top: calc(50% + 20px) !important;
+            right: calc(50% - 240px - var(--image-spacing)) !important;
+            transform: translateY(-50%);
+        }
+        /* Обертка для изображений */
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 240px;
+            height: 240px;
+        }
+        .image-wrapper img {
+            transition: opacity 0.6s ease-in-out;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        /* Стили для подсказки */
+        .hand-pointer {
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+        #hand-left {
+            animation: handMoveLeft 2s infinite alternate;
+        }
+        #hand-right {
+            animation: handMoveRight 2s infinite alternate;
+        }
+        @keyframes handMoveLeft {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-50px); }
+        }
+        @keyframes handMoveRight {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(50px); }
+        }
+        .show-hand { opacity: 1 !important; }
+    </style>
+</head>
+<body>
+<!-- Левый блок -->
+<div class="image-container" id="left-image">
+    <div class="image-wrapper">
+        <img th:src="${leftFirstImage}" class="first-image" alt="Left">
+        <img th:src="${leftSecondImage}" class="second-image" alt="Left Active" style="opacity: 0;">
+    </div>
+</div>
+
+<!-- Правый блок -->
+<div class="image-container" id="right-image">
+    <div class="image-wrapper">
+        <img th:src="${rightFirstImage}" class="first-image" alt="Right">
+        <img th:src="${rightSecondImage}" class="second-image" alt="Right Active" style="opacity: 0;">
+    </div>
+</div>
+
+<!-- Подсказка -->
+<img class="hand-pointer" id="hand-left" th:src="${handImage}" alt="Left Hand Pointer">
+<img class="hand-pointer" id="hand-right" th:src="${handReverseImage}" alt="Right Hand Pointer">
+
+<audio id="animation-sound" src="/sounds/NLOPOLET.mp3"></audio>
+<audio id="audioEY" src="/sounds/letter-a.mp3"></audio>
+<audio id="bgmusic" src="/sounds/bgmusic.mp3"></audio>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const elements = {
+            left: {
+                container: document.getElementById('left-image'),
+                wrapper: document.querySelector('#left-image .image-wrapper')
+            },
+            right: {
+                container: document.getElementById('right-image'),
+                wrapper: document.querySelector('#right-image .image-wrapper')
+            },
+            handLeft: document.getElementById('hand-left'),
+            handRight: document.getElementById('hand-right'),
+            animationSound: document.getElementById('animation-sound'),
+            audioEY: document.getElementById('audioEY'),
+            bgMusic: document.getElementById('bgmusic')
+        };
+
+        let isFirstSoundPlayed = false;
+        let isSecondSoundPlayed = false;
+        let isFirstAsoundPlayed = false;
+        let isSecondAsoundPlayed = false;
+        let isFirstBgMusic = false;
+        let timeoutId = null;
+        let animationsCompleted = 0;
+
+        // Обработчик ошибок для звука анимации
+        elements.animationSound.addEventListener('error', (e) => {
+            console.error('Error playing sound:', e);
+        });
+
+        // Запуск анимации левого блока
+        setTimeout(() => {
+            elements.left.container.classList.add('final-position-left');
+
+            if (!isFirstSoundPlayed) {
+                elements.animationSound.currentTime = 0;
+                elements.animationSound.play()
+                    .then(() => isFirstSoundPlayed = true)
+                    .catch(error => console.error('First sound error:', error));
+            }
+
+            setTimeout(() => {
+                if (!isFirstAsoundPlayed) {
+                    elements.audioEY.currentTime = 0;
+                    elements.audioEY.play()
+                        .then(() => isFirstAsoundPlayed = true)
+                        .catch(error => console.error('First sound error:', error));
+                }
+            }, 1500);
+        }, 1000);
+
+        // Обработчик завершения анимации левого блока
+        elements.left.container.addEventListener('transitionend', () => {
+            elements.left.wrapper.classList.add('show-second');
+            elements.left.wrapper.querySelector('.first-image').style.opacity = '0';
+            elements.left.wrapper.querySelector('.second-image').style.opacity = '1';
+            startRightAnimation();
+        });
+
+        // Запуск анимации правого блока
+        function startRightAnimation() {
+            setTimeout(() => {
+                elements.right.container.classList.add('final-position-right');
+
+                if (!isSecondSoundPlayed) {
+                    elements.animationSound.currentTime = 0;
+                    elements.animationSound.play()
+                        .then(() => isSecondSoundPlayed = true)
+                        .catch(error => console.error('First sound error:', error));
+
+                    setTimeout(() => {
+                        if (!isSecondAsoundPlayed) {
+                            elements.audioEY.currentTime = 0;
+                            elements.audioEY.play()
+                                .then(() => isSecondAsoundPlayed = true)
+                                .catch(error => console.error('First sound error:', error));
+                        }
+                    }, 1500);
+                }
+            }, 2000);
+        }
+
+        // Обработчик завершения анимации правого блока
+        elements.right.container.addEventListener('transitionend', () => {
+            elements.right.wrapper.classList.add('show-second');
+            elements.right.wrapper.querySelector('.first-image').style.opacity = '0';
+            elements.right.wrapper.querySelector('.second-image').style.opacity = '1';
+            animationsCompleted++;
+
+            if (animationsCompleted === 2) {
+                if (!isFirstBgMusic) {
+                    elements.bgMusic.currentTime = 0;
+                    elements.bgMusic.play()
+                        .then(() => isFirstBgMusic = true)
+                        .catch(error => console.error('First sound error:', error));
+                }
+                timeoutId = setTimeout(showHandPointer, 3000);
+            }
+        });
+
+        // Показать подсказку: выравниваем hand-left и hand-right по одному горизонтальному уровню
+        function showHandPointer() {
+            const leftSecondImage = document.querySelector('#left-image .second-image');
+            const rightSecondImage = document.querySelector('#right-image .second-image');
+
+            const leftRect = leftSecondImage.getBoundingClientRect();
+            const rightRect = rightSecondImage.getBoundingClientRect();
+
+            // Вычисляем средний центр по вертикали между двумя изображениями
+            const leftCenter = leftRect.top + leftRect.height / 2;
+            const rightCenter = rightRect.top + rightRect.height / 2;
+            const commonTop = ((leftCenter + rightCenter) / 2) - 40;
+
+            elements.handLeft.style.left = `${leftRect.left - 90}px`;
+            elements.handLeft.style.top = `${commonTop}px`;
+            elements.handRight.style.left = `${rightRect.right + 10}px`;
+            elements.handRight.style.top = `${commonTop}px`;
+
+            elements.handLeft.classList.add('show-hand');
+            elements.handRight.classList.add('show-hand');
+
+            [elements.left, elements.right].forEach(item => {
+                item.container.classList.add('clickable');
+            });
+        }
+
+        // Обработчик взаимодействия
+        function handleInteraction() {
+            clearTimeout(timeoutId);
+            window.location.href = '/angry-alien';
+        }
+
+        [elements.left.container, elements.right.container].forEach(item => {
+            item.addEventListener('click', handleInteraction);
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-image: url("/images/river.jpg");
+            background-size: cover;
+            background-position: center;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alligator {
+            width: 400px;
+            height: 550px;
+            position: absolute;
+            left: 250px;
+            opacity: 0;
+        }
+
+        .alligatorOpen{
+            width: 400px;
+            height: 400px;
+            position: absolute;
+            left: 255px;
+            opacity: 0;
+        }
+
+        .cust {
+            width: 400px;
+            height: 400px;
+            position: absolute;
+            left: 255px;
+            top: 80px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0));
+        }
+
+        .cust:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.07);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .left-arrow {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 1;
+            z-index: 999;
+            transition: opacity 0.3s;
+        }
+
+
+        .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 1;
+            z-index: 999;
+            transition: opacity 0.3s;
+        }
+
+        @keyframes handMove {
+            0% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(50px);
+            }
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .hand-pointer {
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            opacity: 1;
+            left: 180px;
+            top: 200px;
+            pointer-events: none;
+            z-index: 5;
+            animation: handMove 2s infinite ease-in-out; /* Добавляем анимацию */
+        }
+    </style>
+</head>
+<body>
+
+<img src="/images/alligator.png" class="alligator" id="alligator">
+<img src="/images/allROT.png" class="alligatorOpen" id="alligatorOpen">
+<img src="/images/cust.png" class="cust" id="cust">
+<img src="/images/arrow-left.png" class="left-arrow" id="left-arrow">
+<img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+<audio id="allm" src="/sounds/alligator.mp3"></audio>
+<audio id="shelect" src="/sounds/shelect.mp3"></audio>
+<audio id="allr" src="/sounds/allr.mp3"></audio>
+<audio id="audioEY" src="/sounds/letter-a.mp3"></audio>
+<img class="hand-pointer" id="hand-left" src="/images/hand.png" alt="Left Hand Pointer">
+
+
+<script>
+    const cust = document.getElementById('cust');
+    const alligator = document.getElementById('alligator');
+
+    const alligatorOPEN = document.getElementById('alligatorOpen');
+    alligatorOPEN.style.left = '+570px';
+
+
+    document.getElementById('hand-left');
+    const leftArrow = document.getElementById("left-arrow");
+    const rightArrow = document.getElementById('right-arrow');
+
+
+    let inactivityTimer;
+    const handPointer = document.getElementById('hand-left');
+
+
+    // Функции для управления таймером
+    function startInactivityTimer() {
+        handPointer.style.opacity = '0';
+        inactivityTimer = setTimeout(() => {
+            handPointer.style.opacity = '1';
+            handPointer.style.transition = 'opacity 0.5s ease-in-out';
+        }, 3000);
+    }
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        startInactivityTimer();
+    }
+
+    // Инициализация таймера при загрузке
+    document.addEventListener('DOMContentLoaded', startInactivityTimer);
+
+    // Обработчики событий
+    cust.addEventListener('click', () => {
+        resetInactivityTimer();
+    });
+
+    // Обновим существующий обработчик клика
+    cust.addEventListener('click', function () {
+        resetInactivityTimer();
+        playAnimation().catch(error => console.error('Animation error:', error));
+    });
+
+
+    leftArrow.onclick = () => {
+        document.getElementById("audioEY").play();
+        setTimeout(() => {
+            window.location.href = '/angry-alien';
+        }, 700);
+    }
+
+        rightArrow.onclick = () => {
+            document.getElementById("audioEY").play();
+            setTimeout(() => {
+                window.location.href = '/actor';
+            }, 700);
+        }
+
+
+
+    let isAnimationPlaying = false;
+
+    async function playAnimation() {
+        if (isAnimationPlaying) return;
+        isAnimationPlaying = true;
+
+        setTimeout(() => {
+            alligator.style.left = '+570px';
+            alligator.style.opacity = '1';
+
+        }, 1700);
+
+        setTimeout(() => {
+            document.getElementById('shelect').play();
+        }, 1000);
+
+        setTimeout(() => {
+            document.getElementById('allm').play();
+
+        }, 2000);
+
+        setTimeout(() => {
+            alligator.style.display = 'none';
+            alligatorOPEN.style.opacity = '1';
+            alligatorOPEN.style.display = 'block';
+        }, 3400);
+
+        setTimeout(() => {
+            document.getElementById('allr').play();
+        }, 3500);
+
+        setTimeout(() => {
+            alligator.style.display = 'block';
+            alligatorOPEN.style.display = 'none';
+        }, 4000);
+
+
+        setTimeout(() => {
+            alligator.style.left = '-570px';
+            alligator.style.opacity = '0';
+        }, 6000);
+
+
+        setTimeout(() => {
+            isAnimationPlaying = false;
+        }, 2500);
+    }
+
+    cust.addEventListener('click', playAnimation);
+</script>
+
+</body>
+
+
+</html>

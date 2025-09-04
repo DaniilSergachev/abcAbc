@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Подсказка и замена картинки</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: sans-serif;
+            background: url('/images/c2bg.png') no-repeat fixed;
+            background-size: 100% 100%;
+
+
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+        }
+
+        #mainImage, #sideImage {
+            max-width: 400px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        #hand {
+            position: absolute;
+            width: 60px;
+            left: 0;
+            top: 50%;
+            transform: translate(-90px, -50%);
+            opacity: 0;
+            z-index: 2;
+            transition: opacity 0.3s ease;
+        }
+
+        @keyframes wiggle {
+            0%, 100% {
+                transform: translate(-90px, -50%) rotate(0deg);
+            }
+            50% {
+                transform: translate(-100px, -50%) rotate(-10deg);
+            }
+        }
+
+        .hand-animation {
+            animation: wiggle 1.5s infinite;
+        }
+        .left-arrow {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 150px;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            cursor: pointer;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img id="mainImage" src="/images/computer.png" alt="Главная картинка">
+    <img id="sideImage" src="/images/capsul.png" alt="Правая картинка">
+    <img id="hand" src="/images/hand.png" alt="Подсказка">
+</div>
+
+<!-- Аудио -->
+<audio id="soundClick" src="/sounds/SoundComputer.mp3"></audio>
+<audio id="soundChange" src="/sounds/transormation.mp3"></audio>
+<audio id="camel" src="/sounds/camel.mp3"></audio>
+<audio id="wow" src="/sounds/wow.mp3"></audio>
+<audio id="aplo" src="/sounds/s-aplodismentami.mp3"></audio>
+<img src="/images/arrow-left.png" class="left-arrow" id="left-arrow">
+<img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+<audio id="cookieAudio" src="/sounds/cookie.mp3"></audio>
+
+
+
+<script>
+    const mainImage = document.getElementById('mainImage');
+    const sideImage = document.getElementById('sideImage');
+    const hand = document.getElementById('hand');
+    const cookieAudio = document.getElementById('cookieAudio');
+    const soundClick = document.getElementById('soundClick');
+    const soundChange = document.getElementById('soundChange');
+    const camel = document.getElementById('camel');
+    const wow = document.getElementById('wow');
+    const aplo = document.getElementById('aplo');
+
+    const leftArrow = document.getElementById('left-arrow');
+    const rightArrow = document.getElementById('right-arrow');
+
+    leftArrow.onclick = () => {
+        document.getElementById("cookieAudio").play();
+        setTimeout(() => {
+            window.location.href = '/c1';
+        }, 700);
+    }
+
+    rightArrow.onclick = () => {
+        document.getElementById("cookieAudio").play();
+        setTimeout(() => {
+            window.location.href = '/c3';
+        }, 700);
+    }
+
+    let handTimer = setTimeout(() => {
+        hand.style.opacity = '1';
+        hand.classList.add('hand-animation');
+    }, 3000);
+
+    mainImage.addEventListener('click', () => {
+        // Убираем подсказку
+        clearTimeout(handTimer);
+        hand.style.opacity = '0';
+        hand.classList.remove('hand-animation');
+
+        // Звук клика
+        soundClick.play();
+
+        // Замена изображения и второй звук с задержкой
+        setTimeout(() => {
+            sideImage.src = "/images/сapsul1.png"; // замени на путь своей картинки
+            soundChange.play();
+        }, 1700);
+
+        setTimeout(() => {
+            sideImage.src = "/images/camel.png";
+            soundChange.play();
+            setTimeout(() => {
+                camel.play();
+            }, 800);
+            setTimeout(() => {
+                wow.play();
+            }, 1700);
+            setTimeout(() => {
+                aplo.play();
+            }, 3000);
+
+
+
+        }, 3700);
+
+
+
+
+    });
+</script>
+
+</body>
+</html>

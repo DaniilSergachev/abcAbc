@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url("/images/bgALIEN.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            overflow: hidden;
+        }
+        #scene-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+
+        /* Скрываем старый элемент с анимацией alien */
+        #alien {
+            display: none;
+        }
+
+        /* Элемент nloWithAlien с анимацией:
+           стартует за экраном (с левого верхнего угла) и прилетает в позицию левее и ниже центра */
+        .nlo {
+            position: absolute;
+            width: 220px; /* уменьшенный размер */
+            height: auto;
+            opacity: 0;
+            z-index: 3;
+            animation: nloEntrance 3s ease-out forwards;
+        }
+        @keyframes nloEntrance {
+            0% {
+                left: -550px;
+                top: -150px;
+                opacity: 0;
+                transform: none;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                left: 15%;
+                top: 100%;
+                transform: translate(-50%, -100%);
+                opacity: 1;
+            }
+        }
+
+        .alien {
+            position: absolute;
+            width: 180px;
+            opacity: 0;
+            /* начальные значения, которые потом будут переопределены */
+            left: -380px;
+            bottom: -20px;
+            transform: translate(90px, 30px);
+            animation: alienEntrance 2s ease-out forwards;
+            z-index: 1;
+            transition: all 1s ease-in-out;
+            will-change: transform;
+        }
+        @keyframes alienEntrance {
+            0% {
+                opacity: 1;
+                transform: translate(90px, 30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(430px, -130px);
+            }
+        }
+
+        /* Делает happy-alien таким же, как alien: одинаковая ширина и базовое позиционирование */
+        .happy-alien {
+            position: absolute;
+            width: 150px; /* та же ширина, что и у alien */
+            z-index: 1;
+            transition: opacity 1s ease-in-out;
+            opacity: 0;
+            animation: none;
+        }
+        @keyframes happyAlienEntrance {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .tree-apple:active {
+            transform: scale(0.95);
+            filter: brightness(0.9);
+        }
+
+        .speech-bubble {
+            position: absolute;
+            width: 220px;
+            height: 170px;
+            transition: all 0.5s;
+            opacity: 0;
+            left: 135px;
+            top: calc(50% - 70px);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .speech-bubble.active-drop-zone {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .tree-apple {
+            position: absolute;
+            right: -300px;
+            top: 90px;
+            width: 100px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 2;
+        }
+
+        .apple, .speech-bubble, .tree-apple {
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .apple {
+            position: absolute;
+            width: 100px;
+            cursor: pointer;
+            transition: all 0.5s;
+            opacity: 0;
+            left: 200px;
+            top: calc(50% - 65px);
+            z-index: 2;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes alienExit {
+            from { transform: translate(430px, -130px); }
+            to { transform: translate(-1000px, -130px); }
+        }
+
+        .left-arrow {
+            position: absolute;
+            bottom: -50px;
+            left: -370px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 0;
+            z-index: 3;
+            transition: opacity 0.3s;
+        }
+        .right-arrow {
+            position: absolute;
+            bottom: -50px;
+            right: -370px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 0;
+            z-index: 3;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+<div id="scene-container">
+    <img src="/images/angryAlien.png" class="alien" id="alien">
+    <img src="/images/babl.png" class="speech-bubble" id="bubble">
+    <img src="/images/apple.png" class="apple" id="bubble-apple">
+    <img src="/images/nloWithAlien.png" class="nlo" id="nlo">
+    <img src="/images/happy-alien.png" class="happy-alien" id="happy-alien">
+    <img src="/images/apple.png" class="tree-apple" id="tree-apple" style="bottom: 200px; right: 80px;">
+    <div class="trash-zone" id="trash-zone"></div>
+    <audio id="happy-sound" src="happy.mp3"></audio>
+    <audio id="urchanie" src="/sounds/urhanie.mp3"></audio>
+    <audio id="angry" src="/sounds/angry.mp3"></audio>
+    <audio id="apple" src="/sounds/apple.mp3"></audio>
+    <audio id="audioEY" src="/sounds/letter-a.mp3"></audio>
+    <img src="/images/arrow-left.png" class="left-arrow" id="left-arrow">
+    <img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+    <audio id="bgmusic" src="/sounds/bgmusic.mp3"></audio>
+    <audio id="animation-sound" src="/sounds/NLOPOLET.mp3"></audio>
+
+</div>
+
+<script>
+    // После завершения анимации nlo скрываем его и отображаем элемент alien
+    const nloElement = document.getElementById("nlo");
+    const nlo = document.getElementById("animation-sound");
+    nlo.play();
+    nloElement.addEventListener("animationend", function() {
+        nloElement.style.display = "none";
+        const alienElement = document.getElementById("alien");
+        alienElement.style.display = "block";
+        alienElement.style.animation = "none"; // отключаем анимацию
+        alienElement.style.left = "15%";
+        alienElement.style.top = "100%";
+        alienElement.style.transform = "translate(-50%, -100%)";
+        alienElement.style.opacity = "1";
+    });
+
+    // Функция проверки столкновения (collision)
+    function checkCollision(rect1, rect2) {
+        return !(rect1.right < rect2.left ||
+            rect1.left > rect2.right ||
+            rect1.bottom < rect2.top ||
+            rect1.top > rect2.bottom);
+    }
+
+    // Обработка перехода от alien к happy-alien при попадании tree-apple в speech-bubble
+    function transitionToHappyAlien() {
+        const alienElement = document.getElementById("alien");
+        const happyAlienElement = document.getElementById("happy-alien");
+        // Устанавливаем одинаковые координаты для обоих элементов
+        alienElement.style.left = "15%";
+        alienElement.style.top = "100%";
+        alienElement.style.transform = "translate(-50%, -100%)";
+        happyAlienElement.style.left = "15%";
+        happyAlienElement.style.top = "95%";
+        happyAlienElement.style.transform = "translate(-50%, -100%)";
+        // Показываем happy-alien
+        happyAlienElement.style.display = "block";
+        // Устанавливаем плавный переход прозрачности
+        alienElement.style.transition = "opacity 1s ease-in-out";
+        happyAlienElement.style.transition = "opacity 1s ease-in-out";
+        // Запускаем переход: alien исчезает, happy-alien появляется
+        alienElement.style.opacity = "0";
+        happyAlienElement.style.opacity = "1";
+        // После завершения перехода скрываем alien и запускаем анимацию happyAlienExit (если нужна)
+        setTimeout(() => {
+            alienElement.style.display = "none";
+            // Запуск анимации выхода happy-alien (плавно уходит влево за экран)
+            happyAlienElement.style.animation = "happyAlienExit 4s ease-out forwards";
+            document.getElementById('bgmusic').play();
+            setTimeout(() => {
+                const leftArrow = document.getElementById("left-arrow");
+                leftArrow.style.opacity = '1';
+                leftArrow.onclick = () => {
+                    document.getElementById("audioEY").play();
+                    setTimeout(() => { window.location.href = '/videoA'; }, 700);
+                }
+                const rightArrow = document.getElementById('right-arrow');
+                rightArrow.style.opacity = '1';
+                rightArrow.onclick = () => {
+                    document.getElementById("audioEY").play();
+                    setTimeout(() => { window.location.href = '/river'; }, 700);
+                }
+            }, 2000);
+        }, 1000);
+    }
+
+    // Новая анимация для happyAlienExit: happy-alien уходит влево за экран
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+    @keyframes happyAlienExit {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -100%);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-450%, -100%);
+      }
+    }
+  `;
+    document.head.appendChild(styleEl);
+
+    // Остальной код (обработка звуков, перетаскивания и т.д.)
+    let isAngry = false;
+    let isUrc = false;
+
+    setTimeout(() => {
+        const alien = document.getElementById('alien');
+        alien.style.opacity = '1';
+        setTimeout(() => {
+            if(!isAngry) {
+                const angry = document.getElementById('angry');
+                angry.play()
+                    .then(() => isAngry = true)
+                    .catch(error => console.error('First sound error:', error));
+            }
+        }, 1000);
+        setTimeout(() => {
+            if(!isUrc) {
+                const urc = document.getElementById('urchanie');
+                urc.play()
+                    .then(() => isUrc = true)
+                    .catch(error => console.error('First sound error:', error));
+            }
+        }, 1500);
+        setTimeout(() => {
+            const bubble = document.getElementById('bubble');
+            bubble.style.opacity = '1';
+            const apple = document.getElementById('bubble-apple');
+            apple.style.opacity = '1';
+        }, 2000);
+    }, 1000);
+
+    const treeApple = document.getElementById('tree-apple');
+    let isAppleDragging = false;
+    let isClick = false;
+    let clickTimer;
+    const CLICK_DELAY = 200;
+
+    const appleOriginalPosition = {
+        x: treeApple.offsetLeft,
+        y: treeApple.offsetTop
+    };
+
+    treeApple.addEventListener('mousedown', startAppleInteraction);
+    treeApple.addEventListener('touchstart', startAppleInteraction);
+    document.addEventListener('mouseup', handleAppleRelease);
+    document.addEventListener('touchend', handleAppleRelease);
+
+    function startAppleInteraction(e) {
+        e.preventDefault();
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        isClick = true;
+        clickTimer = setTimeout(() => { if (isClick) { handleAppleClick(); } }, CLICK_DELAY);
+        appleStartX = clientX;
+        appleStartY = clientY;
+        appleInitialLeft = treeApple.offsetLeft;
+        appleInitialTop = treeApple.offsetTop;
+        treeApple.style.transition = 'none';
+        treeApple.style.zIndex = 999;
+        document.addEventListener('mousemove', handleAppleMove);
+        document.addEventListener('touchmove', handleAppleMove);
+    }
+
+    function handleAppleMove(e) {
+        if (!isClick) return;
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        if (Math.abs(clientX - appleStartX) > 5 || Math.abs(clientY - appleStartY) > 5) {
+            isClick = false;
+            clearTimeout(clickTimer);
+            startAppleDragging(e);
+        }
+    }
+
+    function startAppleDragging(e) {
+        isAppleDragging = true;
+        document.addEventListener('mousemove', dragApple);
+        document.addEventListener('touchmove', dragApple);
+    }
+
+    function dragApple(e) {
+        if (!isAppleDragging) return;
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        const dx = clientX - appleStartX;
+        const dy = clientY - appleStartY;
+        treeApple.style.left = `${appleInitialLeft + dx}px`;
+        treeApple.style.top = `${appleInitialTop + dy}px`;
+    }
+
+    function handleAppleRelease() {
+        clearTimeout(clickTimer);
+        document.removeEventListener('mousemove', handleAppleMove);
+        document.removeEventListener('touchmove', handleAppleMove);
+        if (isAppleDragging) { stopAppleDragging(); }
+        else if (isClick) { handleAppleClick(); }
+        isClick = false;
+    }
+
+    function handleAppleClick() {
+        let appleSound = document.getElementById('apple');
+        appleSound.play();
+        treeApple.style.transform = 'scale(0.95)';
+        setTimeout(() => { treeApple.style.transform = 'scale(1)'; }, 200);
+    }
+
+    function stopAppleDragging() {
+        isAppleDragging = false;
+        document.removeEventListener('mousemove', dragApple);
+        document.removeEventListener('touchmove', dragApple);
+        treeApple.style.transition = 'all 0.5s ease';
+        treeApple.style.zIndex = 2;
+        const bubble = document.getElementById('bubble');
+        const bubbleApple = document.getElementById('bubble-apple');
+        const bubbleRect = bubble.getBoundingClientRect();
+        const appleRect = treeApple.getBoundingClientRect();
+        const isInBubble = checkCollision(appleRect, bubbleRect);
+        if (isInBubble) {
+            treeApple.style.opacity = '0';
+            bubbleApple.style.opacity = '0';
+            bubble.style.opacity = '0';
+            transitionToHappyAlien();
+        } else {
+            treeApple.style.left = `${appleOriginalPosition.x}px`;
+            treeApple.style.top = `${appleOriginalPosition.y}px`;
+            treeApple.style.transform = 'none';
+            treeApple.style.opacity = '1';
+        }
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        const bubble = document.getElementById('bubble');
+        const rect = bubble.getBoundingClientRect();
+        const isNear = e.clientX > rect.left - 50 &&
+            e.clientX < rect.right + 50 &&
+            e.clientY > rect.top - 50 &&
+            e.clientY < rect.bottom + 50;
+        bubble.classList.toggle('active-drop-zone', isNear);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Движение картинок в центр</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            background: url('/images/kitchen.png') no-repeat fixed;
+            background-size: 100% 100%;
+        }
+
+        .image {
+            width: 200px;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        #leftImage {
+            left: 0;
+        }
+
+        #rightImage {
+            right: 0;
+        }
+
+        .centeredr {
+            left: 60%;
+            transform: translate(-50%, -50%);
+        }
+
+        .centeredl {
+            left: 60%;
+            transform: translate(300%, -50%);
+        }
+
+        .right-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            cursor: pointer;
+            opacity: 1;
+            z-index: 3;
+            transition: opacity 0.3s;
+        }
+
+        /* Подсказка: рука */
+        #hand {
+            position: absolute;
+            width: 80px;
+            z-index: 10;
+            display: none;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Картинки -->
+<img src="/images/cookieC.png" id="leftImage" class="image" alt="Левая картинка">
+<img src="/images/cookie.png" id="rightImage" class="image" alt="Правая картинка">
+<img src="/images/arrow-right.png" class="right-arrow" id="right-arrow">
+
+<!-- Подсказка -->
+<img src="/images/reverseHand.png" id="hand" alt="Подсказка">
+
+<!-- Аудио -->
+<audio id="cookieAudio" src="/sounds/cookie.mp3"></audio>
+<audio id="C" src="/sounds/C.mp3"></audio>
+
+<script>
+    const leftImage = document.getElementById('leftImage');
+    const rightImage = document.getElementById('rightImage');
+    const hand = document.getElementById('hand');
+    const cookieAudio = document.getElementById('cookieAudio');
+    const letterAudio = document.getElementById('C');
+    const rightArrow = document.getElementById('right-arrow');
+
+    let hintTimer;
+
+    function startHintTimer() {
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(() => {
+            showHandHint();
+        }, 3000);
+    }
+
+    function showHandHint() {
+        if (!leftImage.classList.contains('centeredl')) {
+            const rect = leftImage.getBoundingClientRect();
+            hand.style.left = (rect.left + 200) + 'px';
+            hand.style.top = (rect.top + 30) + 'px';
+            hand.style.display = 'block';
+        } else if (!rightImage.classList.contains('centeredr')) {
+            const rect = rightImage.getBoundingClientRect();
+            //hand.style.left = (rect.left - 200) + 'px';
+            //hand.style.top = (rect.top - 60) + 'px';
+            //hand.style.display = 'block';
+        }
+    }
+
+    function hideHandHint() {
+        hand.style.display = 'none';
+    }
+
+    function checkCentered() {
+        if (leftImage.classList.contains('centeredl') &&
+            rightImage.classList.contains('centeredr')) {
+            setTimeout(() => {
+                cookieAudio.play();
+            }, 1200);
+        }
+    }
+
+    // Обработчики кликов
+    leftImage.addEventListener('click', function () {
+        this.classList.add('centeredl');
+        letterAudio.play();
+        hideHandHint();
+        checkCentered();
+    });
+
+    rightImage.addEventListener('click', function () {
+        this.style.right = '';
+        this.classList.add('centeredr');
+        letterAudio.play();
+        hideHandHint();
+        checkCentered();
+    });
+
+    rightArrow.onclick = () => {
+        letterAudio.play();
+        setTimeout(() => {
+            window.location.href = '/c2';
+        }, 700);
+    };
+
+    // Запуск таймера при загрузке страницы
+    window.onload = () => {
+        startHintTimer();
+    };
+</script>
+</body>
+</html>

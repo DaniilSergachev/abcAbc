@@ -1,0 +1,38 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+
+#letter-container, #word-container {
+    margin-top: 50px;
+}
+
+#letter-a {
+    width: 200px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+#word-image {
+    width: 150px;
+    vertical-align: middle;
+}
+
+#word-text {
+    font-size: 48px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animate-letter {
+    animation: spin 1s ease-in-out;
+}

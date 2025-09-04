@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elevator Animation</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-image: url(/images/elevator.png);
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+
+        #elevatorTopZone {
+            position: absolute;
+            top: 15.3%;
+            height: 69.44vh;
+            z-index: 2;
+            left: 26%;
+            width: 48%;
+            pointer-events: none;
+        }
+
+        .door {
+            position: absolute;
+            top: 48.5%;
+            width: 61.85vw;
+            height: 70.44vh;
+            transform: translateY(-50%);
+            transition: transform 1.5s ease;
+            background-size: cover;
+            background-repeat: no-repeat;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        #leftDoor {
+            left: 99.0%;
+            transform: translate(-100%, -50%);
+            background-image: url(/images/leftDoor.png);
+            z-index: 1;
+        }
+
+        #rightDoor {
+            left: 0%;
+            transform: translate(0, -50%);
+            background-image: url(/images/rightDoor.png);
+            z-index: 1;
+        }
+
+        #leftOverlayWrapper, #rightOverlayWrapper {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            overflow: hidden;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #leftOverlayWrapper { left: 0; width: 26%; }
+        #rightOverlayWrapper { right: 0; width: 26%; }
+
+        #leftOverlay, #rightOverlay {
+            width: 100vw;
+            height: 100vh;
+            background-image: url(/images/elevator.png);
+            background-size: 100vw 100vh;
+            background-repeat: no-repeat;
+        }
+
+        #rightOverlay {
+            background-position: 0 0;
+            transform: translateX(calc(-74vw));
+        }
+
+        #leftOverlay {
+            background-position: 0 0;
+        }
+
+        /* Рука-подсказка */
+        #handHint {
+            position: absolute;
+            top: 30%;
+            left: 42%;
+            width: 160px;
+            height: auto;
+            z-index: 5;
+            display: none;
+            animation: wiggleX 1s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes wiggleX {
+            0%, 100% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+        }
+
+        /* Центральное изображение */
+        #centerImage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 30vw;
+            max-height: 50vh;
+            z-index: 4;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+<div id="scene">
+    <div id="elevatorTopZone">
+        <div class="door" id="leftDoor"></div>
+        <div class="door" id="rightDoor"></div>
+    </div>
+
+    <div id="leftOverlayWrapper">
+        <div id="leftOverlay"></div>
+    </div>
+
+    <div id="rightOverlayWrapper">
+        <div id="rightOverlay"></div>
+    </div>
+
+    <!-- Рука-подсказка -->
+    <img id="handHint" src="/images/hand.png" alt="Click hint" />
+
+    <!-- Центральное изображение -->
+    <img id="centerImage" src="" alt="Center content" />
+</div>
+
+<script>
+    let isOpen = false;
+    let isAnimating = false;
+    let hintShown = false;
+    let hintTimeout;
+
+    const images = [
+        { src: "/images/elephant.png", sound: "/sounds/elephant.wav" },
+        { src: "/images/energeticEgg.png", sound: "/sounds/energeticEgg.wav" },
+        { src: "/images/envelope.png", sound: "/sounds/envelope.wav" }
+    ];
+
+    const elevatorSound = new Audio("/sounds/elevator.wav");
+    const signalSound = new Audio("/sounds/elevsing.wav");
+    const centerImage = document.getElementById("centerImage");
+
+
+    function openAndAutoCloseDoors() {
+        if (isAnimating || isOpen) return;
+
+        const left = document.getElementById('leftDoor');
+        const right = document.getElementById('rightDoor');
+
+        isOpen = true;
+        isAnimating = true;
+
+        if (!hintShown) {
+            document.getElementById('handHint').style.display = 'none';
+            clearTimeout(hintTimeout);
+            hintShown = true;
+        }
+
+        // Воспроизвести звук лифта
+        elevatorSound.currentTime = 0;
+        elevatorSound.play();
+
+        // Выбор случайного изображения и звука
+        const randomIndex = Math.floor(Math.random() * images.length);
+        const selected = images[randomIndex];
+
+        centerImage.src = selected.src;
+        setTimeout(() => {
+        signalSound.play();
+        }, 500);
+        // Показываем картинку через 1 секунду
+        setTimeout(() => {
+            centerImage.style.display = "block";
+
+            // Воспроизводим соответствующий звук
+            const imgSound = new Audio(selected.sound);
+            imgSound.play();
+        }, 1500);
+
+        // Анимация открытия
+        left.style.transform = 'translate(-135%, -50%)';
+        right.style.transform = 'translate(35%, -50%)';
+
+        // Закрытие через 3 секунды
+        setTimeout(() => {
+            signalSound.currentTime = 0;
+            signalSound.play();
+            left.style.transform = 'translate(-100%, -50%)';
+            right.style.transform = 'translate(0%, -50%)';
+            centerImage.style.display = "none";
+            isOpen = false;
+
+            setTimeout(() => {
+                isAnimating = false;
+            }, 1500);
+        }, 3000);
+    }
+
+    document.getElementById('leftDoor').addEventListener('click', openAndAutoCloseDoors);
+    document.getElementById('rightDoor').addEventListener('click', openAndAutoCloseDoors);
+
+    hintTimeout = setTimeout(() => {
+        if (!hintShown) {
+            document.getElementById('handHint').style.display = 'block';
+        }
+    }, 3000);
+</script>
+</body>
+</html>

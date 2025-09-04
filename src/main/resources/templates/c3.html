@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Картинка с фейерверками</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('/images/bgc3.png') no-repeat fixed;
+            background-size: 100% 100%;
+        }
+
+        .container {
+            position: relative;
+        }
+
+        .center-image {
+            width: 300px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+            left: -280px;
+            top: 120px; /* Опускает на 50px вниз */
+            /* Сместит влево на 100px */
+        }
+        .hand {
+            position: absolute;
+            width: 100px;
+            top: 70%;
+            left: -100%;
+            transform: translate(-50%, -50%);
+            animation: hand-move 1s infinite alternate;
+            z-index: 10;
+        }
+        .fireworks {
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            width: 600px;
+            height: 600px;
+            pointer-events: none;
+            background: url("/images/fireworks.gif") center center no-repeat;
+            background-size: cover;
+            z-index: 5;
+        }
+
+        @keyframes hand-move {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(-10deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fireworks {
+            position: fixed; /* Чтобы занимала весь экран */
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url("/images/fireworks.gif") center center no-repeat;
+            background-size: cover;
+            pointer-events: none; /* Чтобы клики проходили сквозь неё */
+            z-index: 9999; /* Самый верхний слой */
+        }
+        .left-arrow {
+            position: absolute;
+            bottom: -190px;
+            left: -620px;
+            width: 150px;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img id="mainImage" src="/images/sadCrab.png" class="center-image" />
+    <img id="hand" src="/images/hand.png" class="hand hidden" />
+    <div id="fireworks" class="fireworks hidden"></div>
+    <img id="happyCrab" src="/images/Crab.png" class="hand hidden" />
+    <img src="/images/arrow-left.png" class="left-arrow" id="left-arrow">
+
+</div>
+
+
+
+<audio id="hintSound" src="/sounds/hint.mp3"></audio>
+<audio id="crab" src="/sounds/crab.mp3"></audio>
+<audio id="coolCrab" src="/sounds/coolCrab.mp3"></audio>
+<audio id="fs" src="/sounds/fireworksSoudn.mp3"></audio>
+<audio id="wow" src="/sounds/wow.mp3"></audio>
+<audio id="cookieAudio" src="/sounds/cookie.mp3"></audio>
+
+
+
+<script>
+    const mainImage = document.getElementById("mainImage");
+    const hand = document.getElementById("hand");
+    const fireworks = document.getElementById("fireworks");
+    const hintSound = document.getElementById("hintSound");
+    const crab = document.getElementById("crab");
+    const coolCrab = document.getElementById("coolCrab");
+    const fs = document.getElementById("fs");
+    const wow = document.getElementById("wow");
+    const leftArrow = document.getElementById('left-arrow');
+
+
+    leftArrow.onclick = () => {
+        document.getElementById("cookieAudio").play();
+        setTimeout(() => {
+            window.location.href = '/c2';
+        }, 700);
+    }
+
+
+
+    // Через 1 секунду показать руку и проиграть звук
+    setTimeout(() => {
+        hand.classList.remove("hidden");
+        hintSound.play();
+    }, 1000);
+
+    // При клике на картинку
+    mainImage.addEventListener("click", () => {
+        crab.play();
+        setTimeout(() => {
+        fireworks.classList.remove("hidden");
+        }, 1000);
+
+        fs.play();
+        setTimeout(() => {
+            wow.play();
+        }, 2000);
+        setTimeout(() => {
+            mainImage.src = "/images/Crab.png";
+            fireworks.classList.add("hidden");
+            hand.classList.add("hidden");
+            coolCrab.play();
+        }, 3500);
+    });
+
+</script>
+
+</body>
+</html>

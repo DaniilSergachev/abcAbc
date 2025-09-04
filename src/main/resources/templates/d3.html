@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dog Scene</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('/images/bgimaged3.png') no-repeat fixed;
+            background-size: 100% 100%;
+        }
+
+        #scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #dog, #hand, #mud {
+            position: absolute;
+            transition: all 1s ease;
+        }
+
+        #dog {
+            width: 450px;
+            left: 50%;
+            top: 70%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        #hand {
+            width: 100px;
+            left: 55%;
+            top: 40%;
+            opacity: 0;
+            z-index: 3;
+            transition: opacity 0.5s ease;
+        }
+
+        #mud {
+            width: 200px;
+            left: 50%;
+            top: 75%;
+            transform: translateX(-50%);
+            opacity: 0;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+<div id="scene">
+    <img id="dog" src="/images/dog.png" alt="Dog">
+    <img id="hand" src="/images/hand.png" alt="Hand">
+    <img id="mud" src="/images/dirtyDog.png" alt="Mud">
+</div>
+
+<audio id="audio-dog" src="dog.mp3"></audio>
+<audio id="audio-bark" src="bark.mp3"></audio>
+<audio id="audio-dirty-dog" src="dirty_dog.mp3"></audio>
+
+<script>
+    const dog = document.getElementById("dog");
+    const hand = document.getElementById("hand");
+    const mud = document.getElementById("mud");
+
+    const audioDog = document.getElementById("audio-dog");
+    const audioBark = document.getElementById("audio-bark");
+    const audioDirtyDog = document.getElementById("audio-dirty-dog");
+
+    let hintTimeout;
+    let sceneStarted = false;
+
+    function showHand() {
+        hand.style.opacity = 1;
+    }
+
+    function hideHand() {
+        hand.style.opacity = 0;
+    }
+
+    function jumpDog() {
+        dog.style.top = "40%";
+        setTimeout(() => {
+            dog.style.top = "50%";
+        }, 300);
+    }
+
+    function moveToMud() {
+        dog.style.left = "50%";
+        dog.style.top = "75%";
+        mud.style.opacity = 1;
+    }
+
+    function freezeDog() {
+        dog.style.transition = "none";
+    }
+
+    function escapeDog() {
+        dog.style.transition = "all 1s ease";
+        dog.style.left = "110%";
+    }
+
+    function runScene() {
+        sceneStarted = true;
+        hideHand();
+
+        audioDog.play(); // диктор говорит "dog"
+
+        setTimeout(() => {
+            jumpDog();
+            audioBark.play(); // собака гавкает
+        }, 1500);
+
+        setTimeout(() => {
+            moveToMud();
+        }, 2500);
+
+        setTimeout(() => {
+            freezeDog();
+            showHand();
+        }, 3500);
+
+        setTimeout(() => {
+            audioDirtyDog.play(); // диктор говорит "dirty dog"
+        }, 4000);
+
+        setTimeout(() => {
+            escapeDog();
+            audioBark.play(); // снова гавкает
+        }, 5500);
+    }
+
+    // Ждём 3 секунды перед показом руки-подсказки
+    hintTimeout = setTimeout(() => {
+        if (!sceneStarted) {
+            showHand();
+        }
+    }, 3000);
+
+    dog.addEventListener("click", () => {
+        if (!sceneStarted) {
+            clearTimeout(hintTimeout);
+            runScene();
+        }
+    });
+</script>
+</body>
+</html>
